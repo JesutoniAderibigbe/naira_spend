@@ -1,0 +1,31 @@
+
+# FVM Version Cache
+.fvm/
+
+# Flutter build output
+.dart_tool/
+build/
+
+# Firebase client config: generated per developer, never committed (AGENTS.md).
+# Copy lib/firebase_options.example.dart to lib/firebase_options.dart.
+lib/firebase_options.dart
+android/app/google-services.json
+ios/Runner/GoogleService-Info.plist
+macos/Runner/GoogleService-Info.plist
+
+# Firebase emulator and CLI state
+.firebase/
+*-debug.log
+firebase-export-*/
+
+# Local emulator data snapshot
+.emulator-data/
+
+# Local tooling and OS noise
+.DS_Store
+.idea/
+*.iml
+*.log
+.flutter-plugins
+.flutter-plugins-dependencies
+.claude/settings.local.json

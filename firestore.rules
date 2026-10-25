@@ -1,0 +1,48 @@
+rules_version = '2';
+
+// Naira Spend: each user can read and write only their own data
+// (docs/DATA_MODEL.md). Everything else is denied by default.
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function isOwner(uid) {
+      return request.auth != null && request.auth.uid == uid;
+    }
+
+    function isCategory(value) {
+      return value in ['food', 'transport', 'data', 'bills', 'fun', 'other'];
+    }
+
+    match /users/{uid}/expenses/{expenseId} {
+      allow read, delete: if isOwner(uid);
+      allow create, update: if isOwner(uid)
+        && request.resource.data.keys().hasOnly(
+             ['title', 'amountKobo', 'category', 'date', 'createdAt'])
+        && request.resource.data.keys().hasAll(
+             ['title', 'amountKobo', 'category', 'date'])
+        && request.resource.data.title is string
+        && request.resource.data.title.size() > 0
+        && request.resource.data.title.size() <= 60
+        && request.resource.data.amountKobo is int
+        && request.resource.data.amountKobo > 0
+        && isCategory(request.resource.data.category)
+        && request.resource.data.date is timestamp;
+    }
+
+    // The Rova app shares this Firebase project. Every top-level collection
+    // other than users/ keeps the fully open access Rova had before these
+    // rules were deployed (2026-10-10). Tighten or remove this when Rova gets
+    // its own rules or Naira Spend moves to its own project.
+    match /{collection}/{document=**} {
+      allow read, write: if collection != 'users';
+    }
+
+    match /users/{uid}/budgets/{category} {
+      allow read, delete: if isOwner(uid);
+      allow create, update: if isOwner(uid)
+        && isCategory(category)
+        && request.resource.data.keys().hasOnly(['monthlyLimitKobo'])
+        && request.resource.data.monthlyLimitKobo is int
+        && request.resource.data.monthlyLimitKobo > 0;
+    }
+  }
+}
